@@ -2,55 +2,109 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>ゲーム</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テリック - Terraria風ゲーム</title>
     <style>
-        #world-container {
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+        #game-container {
             position: relative;
-            width: 1000px;
-            height: 800px;
-            border: 1px solid black;
+            width: 100vw;
+            height: 100vh;
+            background-color: #87CEEB;
+            overflow: hidden;
         }
-        .block {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-        }
-        #player {
+        .block, .item, .enemy, #player {
             position: absolute;
             width: 30px;
             height: 30px;
-            background-color: red;
+            text-align: center;
+            line-height: 30px;
         }
-        #inventory {
-            margin-top: 20px;
+        .block {
+            background-color: #8B4513;
         }
-        .inventory-item {
-            display: inline-block;
-            margin: 5px;
+        .item {
+            background-color: #FFD700;
+        }
+        .enemy {
+            background-color: #FF6347;
+        }
+        #player {
+            background-color: #00FF00;
+        }
+        #joystick {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 100px;
+            height: 100px;
+            background-color: #CCC;
+            border-radius: 50%;
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #joystick-handle {
+            width: 50px;
+            height: 50px;
+            background-color: #888;
+            border-radius: 50%;
         }
         #hp-bar {
-            width: 100%;
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            width: 200px;
             height: 20px;
-            background-color: lightgrey;
+            background-color: #000;
         }
-        #hp-bar > div {
+        #hp-bar div {
             height: 100%;
-            background-color: green;
+            width: 100%;
+            background-color: #FF0000;
+        }
+        #inventory {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            width: 200px;
+            height: 100px;
+            background-color: #FFF;
+            border: 1px solid #000;
+        }
+        .inventory-item {
+            width: 30px;
+            height: 30px;
+            line-height: 30px;
+            text-align: center;
+            border: 1px solid #000;
+        }
+        #craft-select, #craft-button, #add-item-button {
+            position: absolute;
+            bottom: 140px;
+            right: 20px;
         }
     </style>
 </head>
 <body>
-    <div id="world-container">
-        <div id="player"></div>
-    </div>
-    <div id="hp-bar">
-        <div></div>
-    </div>
-    <div id="inventory"></div>
-    <div>
+    <div id="game-container">
+        <div id="player">🟢</div>
+        <div id="joystick">
+            <div id="joystick-handle"></div>
+        </div>
+        <div id="hp-bar"><div></div></div>
+        <div id="inventory"></div>
         <select id="craft-select"></select>
         <button id="craft-button">クラフト</button>
-        <button id="add-item-button">アイテムを追加</button>
+        <button id="add-item-button">アイテム追加</button>
     </div>
     <script src="script.js"></script>
 </body>
