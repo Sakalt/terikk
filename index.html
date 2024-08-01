@@ -3,24 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>terikk</title>
+    <title>terikk - ゲーム</title>
     <style>
-        #game-container { position: relative; width: 800px; height: 600px; border: 1px solid black; }
-        .player, .item, .enemy, .tree, .ore { position: absolute; }
-        .inventory-item { cursor: pointer; }
-        #joystick { position: absolute; bottom: 10px; left: 10px; width: 100px; height: 100px; background: gray; border-radius: 50%; }
-        #joystick-handle { position: absolute; width: 30px; height: 30px; background: darkgray; border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); }
-        #hp-bar { position: absolute; bottom: 10px; left: 10px; height: 20px; background: red; width: 100px; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 1px solid #000;
+            background: #e0f7fa;
+        }
+        .player, .item, .enemy, .tree {
+            position: absolute;
+            font-size: 24px;
+            text-align: center;
+        }
+        .player {
+            width: 40px;
+            height: 40px;
+            background: #ff5722;
+            border-radius: 50%;
+        }
+        .item, .enemy, .tree {
+            width: 30px;
+            height: 30px;
+        }
+        #inventory {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 200px;
+            height: 400px;
+            background: #ffffff;
+            border: 1px solid #000;
+            overflow-y: auto;
+            display: none;
+        }
+        .inventory-item {
+            padding: 5px;
+            cursor: pointer;
+            border-bottom: 1px solid #ddd;
+        }
+        .inventory-item:hover {
+            background: #f0f0f0;
+        }
+        #hp-bar {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 100px;
+            height: 20px;
+            background: #fff;
+            border: 1px solid #000;
+        }
+        #hp-bar div {
+            height: 100%;
+            background: #f44336;
+            width: 100%;
+        }
+        /* ジョイスティックのスタイル */
+        #joystick {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 100px;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        #joystick-handle {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background: #2196F3;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #inventory-joystick {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 80px;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            overflow: hidden;
+        }
+        #inventory-joystick-handle {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background: #4CAF50;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <div id="player" class="player" style="width: 40px; height: 40px; background: blue;"></div>
-        <div id="inventory"></div>
-        <div id="joystick">
-            <div id="joystick-handle"></div>
-        </div>
-        <div id="hp-bar"></div>
+        <div id="player" class="player"></div>
+    </div>
+    <div id="inventory"></div>
+    <div id="hp-bar"><div></div></div>
+
+    <!-- ジョイスティックの追加 -->
+    <div id="joystick">
+        <div id="joystick-handle"></div>
+    </div>
+
+    <!-- インベントリ選択ジョイスティックの追加 -->
+    <div id="inventory-joystick">
+        <div id="inventory-joystick-handle"></div>
     </div>
 
     <script src="game.js"></script>
