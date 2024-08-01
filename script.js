@@ -20,9 +20,7 @@ const items = [
     { name: "砂", type: "material", hardness: 1, element: "🏖️" },
     { name: "鉄鉱", type: "material", hardness: 3, element: "⛏️" },
     { name: "金鉱", type: "material", hardness: 4, element: "⛏️" },
-    // 追加のアイテム
     { name: "魔法の杖", type: "weapon", attackPower: 25, element: "✨" },
-    { name: "ドラゴンソード", type: "weapon", attackPower: 64, element: "⚔" },
     { name: "エリクサー", type: "potion", healAmount: 100, element: "🍹" },
     { name: "ドラゴンの鱗", type: "material", hardness: 15, element: "🪙" },
     { name: "エメラルド", type: "ore", hardness: 12, element: "💎" },
@@ -85,181 +83,167 @@ const world = {
     ores: []
 };
 
-// ワールド生成
 function generateWorld() {
-    for (let x = 0; x < world.width; x += 30) {
-        for (let y = 0; y < world.height; y += 30) {
-            if (Math.random() < 0.2) {
-                world.blocks.push({ x, y, ...blocks[Math.floor(Math.random() * blocks.length)] });
-            }
-            if (Math.random() < 0.1) {
-                world.ores.push({ x, y, ...ores[Math.floor(Math.random() * ores.length)] });
-            }
+    for (let x = 0; x < world.width; x += 50) {
+        for (let y = 0; y < world.height; y += 50) {
+            const blockIndex = Math.floor(Math.random() * blocks.length);
+            const block = blocks[blockIndex];
+            world.blocks.push({ ...block, x, y });
         }
     }
-    drawWorld();
+
+    for (let x = 0; x < world.width; x += 200) {
+        for (let y = 0; y < world.height; y += 200) {
+            const oreIndex = Math.floor(Math.random() * ores.length);
+            const ore = ores[oreIndex];
+            world.ores.push({ ...ore, x, y });
+        }
+    }
 }
 
-// ワールド描画
-function drawWorld() {
-    const worldContainer = document.getElementById('world-container');
-    worldContainer.innerHTML = '';
+function createElement(tag, classes, text) {
+    const element = document.createElement(tag);
+    if (classes) element.className = classes;
+    if (text) element.textContent = text;
+    return element;
+}
 
+function displayWorld() {
+    const container = document.getElementById('world-container');
+    container.innerHTML = '';
     world.blocks.forEach(block => {
-        const blockElement = document.createElement('div');
-        blockElement.className = 'block';
+        const blockElement = createElement('div', 'block', block.element);
         blockElement.style.left = `${block.x}px`;
-        blockElement.style.bottom = `${block.y}px`;
-        blockElement.textContent = block.element;
-        worldContainer.appendChild(blockElement);
+        blockElement.style.top = `${block.y}px`;
+        container.appendChild(blockElement);
     });
 
     world.ores.forEach(ore => {
-        const oreElement = document.createElement('div');
-        oreElement.className = 'item';
+        const oreElement = createElement('div', 'block', ore.element);
         oreElement.style.left = `${ore.x}px`;
-        oreElement.style.bottom = `${ore.y}px`;
-        oreElement.textContent = ore.element;
-        worldContainer.appendChild(oreElement);
+        oreElement.style.top = `${ore.y}px`;
+        container.appendChild(oreElement);
     });
 }
 
-// プレイヤー位置の更新
-function updatePlayerPosition() {
-    const playerElement = document.getElementById('player');
-    playerElement.style.left = `${player.x}px`;
-    playerElement.style.bottom = `${player.y}px`;
-    document.getElementById('hp-bar').children[0].style.width = `${(player.hp / player.maxHp) * 100}%`;
-}
-
-// インベントリの表示更新
-function updateInventoryDisplay() {
-    const inventoryDiv = document.getElementById('inventory');
-    inventoryDiv.innerHTML = '';
+function displayInventory() {
+    const inventoryContainer = document.getElementById('inventory');
+    inventoryContainer.innerHTML = '';
     player.inventory.forEach(item => {
-        const itemDiv = document.createElement('div');
-        itemDiv.classList.add('inventory-item');
-        itemDiv.textContent = item.element;
-        inventoryDiv.appendChild(itemDiv);
+        const itemElement = createElement('div', 'inventory-item', item.element);
+        inventoryContainer.appendChild(itemElement);
     });
-    updateCraftingMenu();
 }
 
-// クラフトメニューの更新
-function updateCraftingMenu() {
+function updateHpBar() {
+    const hpBar = document.getElementById('hp-bar').firstElementChild;
+    const hpPercentage = (player.hp / player.maxHp) * 100;
+    hpBar.style.width = `${hpPercentage}%`;
+}
+
+function addItemToInventory(item) {
+    player.inventory.push(item);
+    displayInventory();
+    saveGame();
+}
+
+function craftItem() {
+    const selectedItem = document.getElementById('craft-select').value;
+    if (craftingRecipes[selectedItem]) {
+        const requiredItems = craftingRecipes[selectedItem];
+        const inventoryItemNames = player.inventory.map(item => item.name);
+        const canCraft = requiredItems.every(item => inventoryItemNames.includes(item));
+
+        if (canCraft) {
+            requiredItems.forEach(item => {
+                const index = player.inventory.findIndex(invItem => invItem.name === item);
+                if (index !== -1) player.inventory.splice(index, 1);
+            });
+            const craftedItem = items.find(item => item.name === selectedItem);
+            addItemToInventory(craftedItem);
+        } else {
+            alert("必要なアイテムが不足しています。");
+        }
+    } else {
+        alert("無効なアイテムです。");
+    }
+}
+
+function addRandomItem() {
+    const randomIndex = Math.floor(Math.random() * items.length);
+    const randomItem = items[randomIndex];
+    addItemToInventory(randomItem);
+}
+
+function setupCraftingOptions() {
     const craftSelect = document.getElementById('craft-select');
-    craftSelect.innerHTML = '<option value="">アイテムを選択</option>';
+    craftSelect.innerHTML = '';
     Object.keys(craftingRecipes).forEach(itemName => {
-        const option = document.createElement('option');
-        option.value = itemName;
-        option.textContent = itemName;
+        const option = createElement('option', '', itemName);
         craftSelect.appendChild(option);
     });
 }
 
-// アイテムのクラフト
-function craftItem() {
-    const selectedItem = document.getElementById('craft-select').value;
-    if (!selectedItem) return;
+function movePlayer(dx, dy) {
+    player.x = Math.max(0, Math.min(world.width - 30, player.x + dx));
+    player.y = Math.max(0, Math.min(world.height - 30, player.y + dy));
+    document.getElementById('player').style.left = `${player.x}px`;
+    document.getElementById('player').style.top = `${player.y}px`;
+    saveGame();
+}
 
-    const requiredItems = craftingRecipes[selectedItem];
-    if (!requiredItems) return;
+function saveGame() {
+    const gameState = {
+        player: {
+            x: player.x,
+            y: player.y,
+            hp: player.hp,
+            inventory: player.inventory
+        },
+        world: {
+            blocks: world.blocks,
+            ores: world.ores
+        }
+    };
+    localStorage.setItem('gameState', JSON.stringify(gameState));
+}
 
-    const inventoryItemCounts = player.inventory.reduce((counts, item) => {
-        counts[item.name] = (counts[item.name] || 0) + 1;
-        return counts;
-    }, {});
-
-    const canCraft = requiredItems.every(item => inventoryItemCounts[item] >= 1);
-
-    if (canCraft) {
-        player.inventory.push({ name: selectedItem, ...items.find(i => i.name === selectedItem) });
-        requiredItems.forEach(item => {
-            const itemIndex = player.inventory.findIndex(i => i.name === item);
-            if (itemIndex > -1) {
-                player.inventory.splice(itemIndex, 1);
-            }
-        });
-        updateInventoryDisplay();
-    } else {
-        alert('素材が足りません!');
+function loadGame() {
+    const savedGame = localStorage.getItem('gameState');
+    if (savedGame) {
+        const gameState = JSON.parse(savedGame);
+        player.x = gameState.player.x;
+        player.y = gameState.player.y;
+        player.hp = gameState.player.hp;
+        player.inventory = gameState.player.inventory;
+        world.blocks = gameState.world.blocks;
+        world.ores = gameState.world.ores;
     }
 }
 
-// アイテムをインベントリに追加
-function addItemToInventory(item) {
-    player.inventory.push(item);
-    updateInventoryDisplay();
+function initializeGame() {
+    loadGame();
+    displayWorld();
+    displayInventory();
+    updateHpBar();
+    setupCraftingOptions();
+
+    const playerElement = document.getElementById('player');
+    playerElement.style.left = `${player.x}px`;
+    playerElement.style.top = `${player.y}px`;
 }
 
-// アイテムを削除
-function removeItemFromInventory(itemName) {
-    const itemIndex = player.inventory.findIndex(item => item.name === itemName);
-    if (itemIndex > -1) {
-        player.inventory.splice(itemIndex, 1);
-        updateInventoryDisplay();
-    }
-}
+document.addEventListener('DOMContentLoaded', () => {
+    initializeGame();
 
-// プレイヤーのHPを回復
-function healPlayer(amount) {
-    player.hp = Math.min(player.maxHp, player.hp + amount);
-    updatePlayerPosition();
-}
+    document.getElementById('add-item-button').addEventListener('click', addRandomItem);
+    document.getElementById('craft-button').addEventListener('click', craftItem);
 
-// ダメージを与える
-function damagePlayer(amount) {
-    player.hp = Math.max(0, player.hp - amount);
-    if (player.hp <= 0) {
-        alert('ゲームオーバー');
-    }
-    updatePlayerPosition();
-}
-
-// 敵のスポーン
-function spawnEnemy() {
-    const enemy = enemies[Math.floor(Math.random() * enemies.length)];
-    const enemyElement = document.createElement('div');
-    enemyElement.className = 'enemy';
-    enemyElement.textContent = enemy.element;
-    document.getElementById('world-container').appendChild(enemyElement);
-    // 敵の動きや攻撃などのロジックはここに追加
-}
-
-// イベントリスナー
-document.getElementById('craft-btn').addEventListener('click', craftItem);
-document.getElementById('heal-btn').addEventListener('click', () => healPlayer(20));
-document.getElementById('damage-btn').addEventListener('click', () => damagePlayer(10));
-
-// アイテムをインベントリに追加
-function addItemToInventory(itemName) {
-    const item = items.find(i => i.name === itemName);
-    if (item) {
-        player.inventory.push(item);
-        updateInventoryDisplay();
-    } else {
-        alert('アイテムが見つかりません!');
-    }
-}
-
-// アイテムを削除
-function removeItemFromInventory(itemName) {
-    const itemIndex = player.inventory.findIndex(item => item.name === itemName);
-    if (itemIndex > -1) {
-        player.inventory.splice(itemIndex, 1);
-        updateInventoryDisplay();
-    } else {
-        alert('アイテムがインベントリにありません!');
-    }
-}
-
-// アイテムをなんでもゲットボタンの処理
-document.getElementById('get-any-item-btn').addEventListener('click', () => {
-    const itemName = prompt('追加するアイテムの名前を入力してください:');
-    addItemToInventory(itemName);
+    window.addEventListener('keydown', (e) => {
+        const step = 5;
+        if (e.key === 'ArrowUp') movePlayer(0, -step);
+        if (e.key === 'ArrowDown') movePlayer(0, step);
+        if (e.key === 'ArrowLeft') movePlayer(-step, 0);
+        if (e.key === 'ArrowRight') movePlayer(step, 0);
+    });
 });
-
-// ワールドとインベントリの初期化
-generateWorld();
-updateInventoryDisplay();
-updatePlayerPosition();
