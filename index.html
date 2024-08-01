@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>テラリア風ゲーム</title>
+    <style>
+        #game-container {
+            width: 800px;
+            height: 600px;
+            border: 1px solid #000;
+            position: relative;
+            background-color: #87CEEB; /* 空の色 */
+            overflow: hidden;
+        }
+        #hp-bar {
+            width: 100px;
+            height: 20px;
+            background-color: red;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        #player {
+            width: 40px;
+            height: 40px;
+            background-color: green;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
+        .tree {
+            width: 30px;
+            height: 60px;
+            background-color: #8B4513; /* 木の幹 */
+            position: absolute;
+            bottom: 0;
+        }
+        .enemy {
+            width: 40px;
+            height: 40px;
+            background-color: red;
+            position: absolute;
+        }
+        .item {
+            width: 20px;
+            height: 20px;
+            background-color: yellow;
+            position: absolute;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="hp-bar"></div>
+        <div id="player"></div>
+    </div>
+    <script src="game.js"></script>
+</body>
+</html>
