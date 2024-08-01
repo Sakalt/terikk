@@ -5,9 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>テラリア風ゲーム</title>
     <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
         #game-container {
-            width: 800px;
-            height: 600px;
+            width: 100vw;
+            height: 100vh;
             border: 1px solid #000;
             position: relative;
             background-color: #87CEEB; /* 空の色 */
@@ -49,12 +55,36 @@
             position: absolute;
             border-radius: 50%;
         }
+        #joystick {
+            width: 100px;
+            height: 100px;
+            border: 2px solid #000;
+            border-radius: 50%;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            touch-action: none;
+        }
+        #joystick-handle {
+            width: 40px;
+            height: 40px;
+            background-color: #888;
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            touch-action: none;
+        }
     </style>
 </head>
 <body>
     <div id="game-container">
         <div id="hp-bar"></div>
         <div id="player"></div>
+        <div id="joystick">
+            <div id="joystick-handle"></div>
+        </div>
     </div>
     <script src="game.js"></script>
 </body>
