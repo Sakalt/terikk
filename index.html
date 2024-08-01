@@ -3,128 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>terikk - ゲーム</title>
+    <title>テラリア風ゲーム</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: Arial, sans-serif;
-        }
-        #game-container {
-            position: relative;
-            width: 800px;
-            height: 600px;
-            border: 1px solid #000;
-            background: #e0f7fa;
-        }
-        .player, .item, .enemy, .tree {
-            position: absolute;
-            font-size: 24px;
-            text-align: center;
-        }
-        .player {
-            width: 40px;
-            height: 40px;
-            background: #ff5722;
-            border-radius: 50%;
-        }
-        .item, .enemy, .tree {
-            width: 30px;
-            height: 30px;
-        }
-        #inventory {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 200px;
-            height: 400px;
-            background: #ffffff;
-            border: 1px solid #000;
-            overflow-y: auto;
-            display: none;
-        }
-        .inventory-item {
-            padding: 5px;
-            cursor: pointer;
-            border-bottom: 1px solid #ddd;
-        }
-        .inventory-item:hover {
-            background: #f0f0f0;
-        }
-        #hp-bar {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            width: 100px;
-            height: 20px;
-            background: #fff;
-            border: 1px solid #000;
-        }
-        #hp-bar div {
-            height: 100%;
-            background: #f44336;
-            width: 100%;
-        }
-        /* ジョイスティックのスタイル */
-        #joystick {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            width: 100px;
-            height: 100px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 50%;
-            overflow: hidden;
-        }
-        #joystick-handle {
-            position: absolute;
-            width: 50px;
-            height: 50px;
-            background: #2196F3;
-            border-radius: 50%;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-        #inventory-joystick {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 80px;
-            height: 80px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 50%;
-            overflow: hidden;
-        }
-        #inventory-joystick-handle {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background: #4CAF50;
-            border-radius: 50%;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
+        body { margin: 0; padding: 0; overflow: hidden; }
+        #game-container { position: relative; width: 100vw; height: 100vh; background-color: #87CEEB; }
+        #player { position: absolute; width: 50px; height: 50px; background: #0F0; }
+        .item, .enemy { position: absolute; width: 30px; height: 30px; }
+        #joystick, #inventory-joystick { position: absolute; bottom: 10px; width: 100px; height: 100px; border-radius: 50%; background: rgba(0,0,0,0.5); }
+        #joystick-handle, #inventory-joystick-handle { position: absolute; width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.8); cursor: pointer; }
+        #hp-bar { position: absolute; top: 10px; left: 10px; width: 200px; height: 20px; background: #ddd; }
+        #hp-bar > div { height: 100%; background: #f00; }
+        #inventory { position: absolute; bottom: 120px; left: 10px; }
+        .inventory-item { cursor: pointer; }
+        #crafting-menu { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 5px; }
+        #crafting-menu select { margin-bottom: 10px; }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <div id="player" class="player"></div>
+        <div id="player"></div>
+        <div id="joystick">
+            <div id="joystick-handle"></div>
+        </div>
+        <div id="inventory-joystick">
+            <div id="inventory-joystick-handle"></div>
+        </div>
+        <div id="inventory"></div>
+        <div id="hp-bar"><div></div></div>
+        <div id="crafting-menu">
+            <select id="craft-select">
+                <option value="">アイテムを選択</option>
+            </select>
+            <button id="craft-button">クラフト</button>
+        </div>
     </div>
-    <div id="inventory"></div>
-    <div id="hp-bar"><div></div></div>
-
-    <!-- ジョイスティックの追加 -->
-    <div id="joystick">
-        <div id="joystick-handle"></div>
-    </div>
-
-    <!-- インベントリ選択ジョイスティックの追加 -->
-    <div id="inventory-joystick">
-        <div id="inventory-joystick-handle"></div>
-    </div>
-
-    <script src="game.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
