@@ -3,98 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>シンプルなゲーム</title>
+    <title>terikk</title>
     <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f0f0f0;
-        }
-        #game-container {
-            position: relative;
-            width: 800px;
-            height: 600px;
-            background-color: #fff;
-            border: 1px solid #ccc;
-        }
-        .item, .enemy, .tree, #player {
-            position: absolute;
-            bottom: 0;
-        }
-        .item {
-            font-size: 24px;
-        }
-        .enemy {
-            font-size: 24px;
-        }
-        .tree {
-            width: 20px;
-            height: 60px;
-            background-color: green;
-        }
-        #player {
-            width: 30px;
-            height: 30px;
-            background-color: blue;
-        }
-        #hp-bar {
-            width: 100px;
-            height: 20px;
-            background-color: red;
-        }
-        #joystick {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 100px;
-            height: 100px;
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-        }
-        #joystick-handle {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 50%;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
-        #attack-joystick {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            width: 100px;
-            height: 100px;
-            background-color: rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-        }
-        #attack-joystick-handle {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 50%;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-        }
+        #game-container { position: relative; width: 800px; height: 600px; border: 1px solid black; }
+        .player, .item, .enemy, .tree, .ore { position: absolute; }
+        .inventory-item { cursor: pointer; }
+        #joystick { position: absolute; bottom: 10px; left: 10px; width: 100px; height: 100px; background: gray; border-radius: 50%; }
+        #joystick-handle { position: absolute; width: 30px; height: 30px; background: darkgray; border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+        #hp-bar { position: absolute; bottom: 10px; left: 10px; height: 20px; background: red; width: 100px; }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <div id="player"></div>
-        <div id="hp-bar"></div>
+        <div id="player" class="player" style="width: 40px; height: 40px; background: blue;"></div>
+        <div id="inventory"></div>
         <div id="joystick">
             <div id="joystick-handle"></div>
         </div>
-        <div id="attack-joystick">
-            <div id="attack-joystick-handle"></div>
-        </div>
+        <div id="hp-bar"></div>
     </div>
+
     <script src="game.js"></script>
 </body>
 </html>
