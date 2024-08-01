@@ -1,32 +1,33 @@
 // アイテムの定義
 const items = [
-    { name: "剣", type: "weapon", attackPower: 15, attackSpeed: 1, element: "⚔️" },
-    { name: "弓", type: "weapon", attackPower: 10, attackSpeed: 1.5, element: "🏹" },
+    { name: "剣", type: "weapon", attackPower: 15, element: "⚔️" },
+    { name: "弓", type: "weapon", attackPower: 10, element: "🏹" },
     { name: "回復ポーション", type: "potion", healAmount: 20, element: "🍷" },
-    { name: "食料", type: "food", healAmount: 10, element: "🍏" },
-    { name: "アクセサリ", type: "accessory", effects: ["increaseDefense"], element: "💍" },
-    { name: "スピードポーション", type: "potion", effect: "increaseSpeed", duration: 5000, element: "🏃‍♂️" },
-    { name: "攻撃速度のリング", type: "accessory", effects: ["increaseAttackSpeed"], element: "⏩" }
+    { name: "ツール", type: "tool", effect: "useTool", element: "🔧" },
+    { name: "ハンマー", type: "tool", effect: "build", element: "🔨" },
+    { name: "木材", type: "material", element: "🪵" },
+    { name: "鉱石", type: "material", hardness: 5, element: "🪙" },
+    { name: "鉄鉱石", type: "material", hardness: 7, element: "⛓️" }
 ];
 
-const enemies = [
-    { name: "ゴブリン", health: 30, speed: 2, element: "👹" },
-    { name: "ゴースト", health: 25, speed: 1.5, element: "👻" }
-];
+// クラフトレシピの定義
+const recipes = {
+    "鉄の剣": { type: "weapon", attackPower: 25, ingredients: { "木材": 2, "鉄鉱石": 3 } },
+    "木の盾": { type: "shield", defense: 10, ingredients: { "木材": 5 } },
+    "ポーションの強化": { type: "potion", healAmount: 40, ingredients: { "回復ポーション": 1, "鉄鉱石": 1 } }
+};
 
 // プレイヤーの状態
 let player = {
     hp: 100,
     attackPower: 10,
-    attackSpeed: 1,
     defense: 5,
-    speed: 5,
     x: 50,
     y: 50,
     invincible: false,
     inventory: [],
-    invincibleTimer: null,
-    effectTimers: {}
+    selectedItem: null,
+    selectedItemElement: null,
 };
 
 // ローカルストレージにゲーム状態を保存
@@ -76,6 +77,15 @@ function die() {
     // ゲームオーバー処理
 }
 
+// 攻撃
+function attack() {
+    if (!player.invincible) {
+        console.log("攻撃!");
+        player.invincible = true;
+        setTimeout(() => player.invincible = false, 600); // 0.6秒の無敵時間
+    }
+}
+
 // アイテムの使用
 function useItem(item) {
     switch (item.type) {
@@ -84,42 +94,19 @@ function useItem(item) {
                 player.hp = Math.min(100, player.hp + item.healAmount);
                 console.log(`プレイヤーが${item.healAmount}回復しました。HPは${player.hp}です`);
             }
-            if (item.effect === "increaseSpeed") {
-                applyEffect("speed", item.duration, () => player.speed *= 2, () => player.speed /= 2);
-            }
-            break;
-        case 'food':
-            if (item.healAmount) {
-                player.hp = Math.min(100, player.hp + item.healAmount);
-                console.log(`プレイヤーが${item.healAmount}回復しました。HPは${player.hp}です`);
-            }
             break;
         case 'weapon':
             player.attackPower = item.attackPower;
-            player.attackSpeed = item.attackSpeed;
-            console.log(`プレイヤーの攻撃力が${item.attackPower}になり、攻撃速度が${item.attackSpeed}になりました`);
+            console.log(`プレイヤーの攻撃力が${item.attackPower}になりました`);
             break;
-        case 'accessory':
-            item.effects.forEach(effect => applyAccessoryEffect(effect));
+        case 'tool':
+            console.log("ツールを使用しました。");
+            break;
+        case 'build':
+            console.log("ハンマーで建築しました。");
             break;
         default:
             console.log("アイテムの効果が認識できません。");
-    }
-}
-
-// アクセサリの効果を適用
-function applyAccessoryEffect(effect) {
-    switch (effect) {
-        case 'increaseDefense':
-            player.defense += 5;
-            console.log("プレイヤーの防御力が5増加しました");
-            break;
-        case 'increaseAttackSpeed':
-            player.attackSpeed *= 1.5;
-            console.log("プレイヤーの攻撃速度が1.5倍になりました");
-            break;
-        default:
-            console.log("アクセサリの効果が認識できません。");
     }
 }
 
@@ -139,8 +126,65 @@ function pickUpItem(itemElement) {
         player.inventory.push(item);
         itemElement.remove();
         console.log(`プレイヤーが${itemName}を取得しました`);
+        updateInventoryDisplay();
         saveGameState(); // アイテム取得後に保存
     }
+}
+
+// アイテムのクラフト
+function craftItem(craftedItemName) {
+    const recipe = recipes[craftedItemName];
+    if (!recipe) {
+        console.log("そのアイテムのレシピはありません");
+        return;
+    }
+
+    const hasIngredients = Object.entries(recipe.ingredients).every(([ingredientName, quantity]) => {
+        const count = player.inventory.filter(i => i.name === ingredientName).length;
+        return count >= quantity;
+    });
+
+    if (hasIngredients) {
+        // 必要なアイテムを消費する
+        Object.entries(recipe.ingredients).forEach(([ingredientName, quantity]) => {
+            let remaining = quantity;
+            player.inventory = player.inventory.filter(item => {
+                if (item.name === ingredientName && remaining > 0) {
+                    remaining--;
+                    return false;
+                }
+                return true;
+            });
+        });
+
+        // 新しいアイテムをインベントリに追加
+        const craftedItem = { name: craftedItemName, ...recipe };
+        player.inventory.push(craftedItem);
+        console.log(`${craftedItemName} を作成しました`);
+        updateInventoryDisplay();
+    } else {
+        console.log("必要な材料が足りません");
+    }
+}
+
+// インベントリの表示更新
+function updateInventoryDisplay() {
+    const inventoryDiv = document.getElementById('inventory');
+    inventoryDiv.innerHTML = '';
+    player.inventory.forEach(item => {
+        const itemElement = document.createElement('div');
+        itemElement.className = 'inventory-item';
+        itemElement.dataset.name = item.name;
+        itemElement.innerText = `${item.element} ${item.name}`;
+        itemElement.addEventListener('click', () => selectItem(item));
+        inventoryDiv.appendChild(itemElement);
+    });
+}
+
+// アイテムの選択
+function selectItem(item) {
+    player.selectedItem = item;
+    console.log(`アイテム ${item.name} を選択しました`);
 }
 
 // アイテムの生成
@@ -156,83 +200,90 @@ function spawnItem(x, y, itemName = null) {
     document.getElementById('game-container').appendChild(itemElement);
 }
 
-// 敵の動き
-function moveEnemy(enemyElement, enemy) {
-    const playerPosition = { x: player.x, y: player.y };
-    let dx = playerPosition.x - parseFloat(enemyElement.style.left);
-    let dy = playerPosition.y - parseFloat(enemyElement.style.bottom);
-    const distance = Math.sqrt(dx * dx + dy * dy);
-    dx /= distance;
-    dy /= distance;
-    enemyElement.style.left = `${parseFloat(enemyElement.style.left) + dx * enemy.speed}px`;
-    enemyElement.style.bottom = `${parseFloat(enemyElement.style.bottom) + dy * enemy.speed}px`;
-    if (distance < 10 && !player.invincible) {
-        player.hp -= 10;
-        setHp(player.hp);
-        console.log(`プレイヤーが敵に攻撃されました。HPは${player.hp}です`);
-        player.invincible = true;
-        player.invincibleTimer = setTimeout(() => player.invincible = false, 600);
-    }
-}
-
 // 敵の生成
-function spawnEnemy(x, y, enemyName = null) {
+function spawnEnemy(x = null, y = null, enemyName = null) {
     const enemy = enemyName ? enemies.find(e => e.name === enemyName) : enemies[Math.floor(Math.random() * enemies.length)];
     const enemyElement = document.createElement('div');
     enemyElement.className = 'enemy';
     enemyElement.dataset.name = enemy.name;
-    enemyElement.style.left = `${x}px`;
-    enemyElement.style.bottom = `${y}px`;
+    enemyElement.style.left = `${x !== null ? x : Math.random() * 760}px`;
+    enemyElement.style.bottom = `${y !== null ? y : Math.random() * 560}px`;
     enemyElement.innerText = enemy.element;
     document.getElementById('game-container').appendChild(enemyElement);
-    setInterval(() => moveEnemy(enemyElement, enemy), 100); // 敵の動き
+    setInterval(() => moveEnemy(enemyElement, enemy), 100);
 }
 
-// 効果の適用
-function applyEffect(effect, duration, apply, remove) {
-    apply();
-    const timerId = setTimeout(() => {
-        remove();
-        delete player.effectTimers[effect];
-    }, duration);
-    player.effectTimers[effect] = timerId;
+// 敵の動き
+function moveEnemy(enemyElement, enemy) {
+    const playerPosition = { x: player.x, y: player.y };
+    let dx = playerPosition.x - enemy.x;
+    let dy = playerPosition.y - enemy.y;
+    let distance = Math.sqrt(dx * dx + dy * dy);
+    if (distance < 100) { // プレイヤーが近いと追いかける
+        dx /= distance;
+        dy /= distance;
+        enemy.x += dx * 2;
+        enemy.y += dy * 2;
+        enemyElement.style.left = `${enemy.x}px`;
+        enemyElement.style.bottom = `${enemy.y}px`;
+    }
 }
 
-// ジョイスティックの設定
-const joystick = document.getElementById('joystick');
-const handle = document.getElementById('joystick-handle');
-let joystickActive = false;
+// ワールド生成
+function generateWorld() {
+    for (let i = 0; i < 10; i++) {
+        const tree = document.createElement('div');
+        tree.className = 'tree';
+        tree.style.left = `${Math.random() * 760}px`;
+        tree.style.bottom = `${Math.random() * 560}px`;
+        tree.innerText = '🌳';
+        document.getElementById('game-container').appendChild(tree);
+    }
+    for (let i = 0; i < 5; i++) {
+        spawnItem(Math.random() * 760, Math.random() * 560);
+    }
+    for (let i = 0; i < 3; i++) {
+        spawnOre(Math.random() * 760, Math.random() * 560);
+    }
+    for (let i = 0; i < 2; i++) {
+        spawnEnemy();
+    }
+}
 
-joystick.addEventListener('mousedown', (e) => {
-    joystickActive = true;
-});
+// プレイヤーの移動
+function movePlayerByJoystick(dx, dy) {
+    player.x += dx;
+    player.y += dy;
+    movePlayer(player.x, player.y);
+}
 
-joystick.addEventListener('mouseup', () => {
-    joystickActive = false;
-    handle.style.left = '50%';
-    handle.style.top = '50%';
-});
-
-joystick.addEventListener('mousemove', (e) => {
-    if (joystickActive) {
-        const rect = joystick.getBoundingClientRect();
-        const x = e.clientX - rect.left - rect.width / 2;
-        const y = e.clientY - rect.top - rect.height / 2;
-        handle.style.left = `${x + rect.width / 2}px`;
-        handle.style.top = `${y + rect.height / 2}px`;
-        movePlayer(player.x + x / 10, player.y + y / 10); // 移動量を調整
+// イベントリスナーの設定
+document.addEventListener('keydown', (e) => {
+    switch (e.code) {
+        case 'ArrowUp':
+            movePlayerByJoystick(0, 10);
+            break;
+        case 'ArrowDown':
+            movePlayerByJoystick(0, -10);
+            break;
+        case 'ArrowLeft':
+            movePlayerByJoystick(-10, 0);
+            break;
+        case 'ArrowRight':
+            movePlayerByJoystick(10, 0);
+            break;
+        case 'Space':
+            attack();
+            break;
+        case 'KeyI':
+            // インベントリ表示
+            document.getElementById('inventory').style.display = 'block';
+            break;
     }
 });
 
-// 初期化
-window.onload = () => {
-    loadGameState();
-    spawnItem(100, 100, "剣");
-    spawnItem(200, 150, "回復ポーション");
-    spawnItem(300, 200, "食料");
-    spawnItem(400, 250, "アクセサリ");
-    spawnItem(500, 300, "スピードポーション");
-    spawnItem(600, 350, "攻撃速度のリング");
-    spawnEnemy(700, 400, "ゴブリン");
-    spawnEnemy(800, 450, "ゴースト");
-};
+// ゲームの初期化
+generateWorld();
+updateInventoryDisplay();
+createCraftingInterface();
+loadGameState(); // ゲーム開始時に状態を読み込む
