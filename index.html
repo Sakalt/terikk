@@ -3,108 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>テリック - Terraria風ゲーム</title>
+    <title>Terikk</title>
     <style>
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
             overflow: hidden;
         }
         #game-container {
             position: relative;
             width: 100vw;
             height: 100vh;
-            background-color: #87CEEB;
-            overflow: hidden;
+            background: #87CEEB; /* 空の色 */
         }
-        .block, .item, .enemy, #player {
+        .item, .enemy {
             position: absolute;
             width: 30px;
             height: 30px;
+            background-color: transparent;
             text-align: center;
             line-height: 30px;
-        }
-        .block {
-            background-color: #8B4513;
+            border-radius: 50%;
+            font-size: 14px;
         }
         .item {
-            background-color: #FFD700;
+            color: green;
         }
         .enemy {
-            background-color: #FF6347;
+            color: red;
         }
         #player {
-            background-color: #00FF00;
-        }
-        #joystick {
             position: absolute;
-            bottom: 20px;
-            left: 20px;
-            width: 100px;
-            height: 100px;
-            background-color: #CCC;
-            border-radius: 50%;
-            border: 2px solid #000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        #joystick-handle {
-            width: 50px;
-            height: 50px;
-            background-color: #888;
-            border-radius: 50%;
-        }
-        #hp-bar {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            width: 200px;
-            height: 20px;
-            background-color: #000;
-        }
-        #hp-bar div {
-            height: 100%;
-            width: 100%;
-            background-color: #FF0000;
-        }
-        #inventory {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            width: 200px;
-            height: 100px;
-            background-color: #FFF;
-            border: 1px solid #000;
-        }
-        .inventory-item {
             width: 30px;
             height: 30px;
-            line-height: 30px;
+            background-color: blue;
+            color: white;
             text-align: center;
-            border: 1px solid #000;
+            line-height: 30px;
+            border-radius: 50%;
+            font-size: 14px;
         }
-        #craft-select, #craft-button, #add-item-button {
+        #hp-bar {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 200px;
+            height: 20px;
+            background: #333;
+            border: 2px solid #000;
+        }
+        #hp-bar > div {
+            height: 100%;
+            background: red;
+            width: 100%;
+        }
+        #joystick {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            width: 100px;
+            height: 100px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+        }
+        #joystick-handle {
             position: absolute;
-            bottom: 140px;
-            right: 20px;
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #inventory {
+            position: fixed;
+            bottom: 120px;
+            left: 10px;
+            background: #fff;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+        #spawn-item-btn, #spawn-enemy-btn, #give-all-items-btn, #attack-btn, #craft-btn {
+            position: fixed;
+            bottom: 10px;
+            margin: 5px;
+            padding: 10px;
+            background: #f0f0f0;
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+        #spawn-item-btn {
+            left: 120px;
+        }
+        #spawn-enemy-btn {
+            left: 240px;
+        }
+        #give-all-items-btn {
+            left: 360px;
+        }
+        #attack-btn {
+            left: 480px;
+        }
+        #craft-btn {
+            left: 600px;
+        }
+        #craft-menu {
+            position: fixed;
+            bottom: 50px;
+            left: 10px;
+            background: #fff;
+            border: 1px solid #000;
+            padding: 10px;
+            display: none;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <div id="player">🟢</div>
+        <div id="player">P</div>
+        <div id="hp-bar"><div></div></div>
         <div id="joystick">
             <div id="joystick-handle"></div>
         </div>
-        <div id="hp-bar"><div></div></div>
         <div id="inventory"></div>
-        <select id="craft-select"></select>
-        <button id="craft-button">クラフト</button>
-        <button id="add-item-button">アイテム追加</button>
+        <button id="spawn-item-btn">アイテムをスポーン</button>
+        <button id="spawn-enemy-btn">敵をスポーン</button>
+        <button id="give-all-items-btn">全アイテムを手に入れる</button>
+        <button id="attack-btn">攻撃</button>
+        <button id="craft-btn">クラフト</button>
+        <div id="craft-menu">
+            <h3>クラフトメニュー</h3>
+            <div id="craft-items"></div>
+        </div>
     </div>
     <script src="script.js"></script>
 </body>
