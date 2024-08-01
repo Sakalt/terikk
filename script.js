@@ -22,6 +22,7 @@ const items = [
     { name: "金鉱", type: "material", hardness: 4, element: "⛏️" },
     // 追加のアイテム
     { name: "魔法の杖", type: "weapon", attackPower: 25, element: "✨" },
+    { name: "ドラゴンソード", type: "weapon", attackPower: 64, element: "⚔" },
     { name: "エリクサー", type: "potion", healAmount: 100, element: "🍹" },
     { name: "ドラゴンの鱗", type: "material", hardness: 15, element: "🪙" },
     { name: "エメラルド", type: "ore", hardness: 12, element: "💎" },
