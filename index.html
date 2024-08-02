@@ -18,16 +18,6 @@
             height: 50px;
             background-color: #f00;
         }
-        #inventory {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 200px;
-            height: 100vh;
-            background-color: #fff;
-            border: 1px solid #000;
-            overflow-y: auto;
-        }
         #hp-bar, #mana-bar {
             position: fixed;
             top: 0;
@@ -40,6 +30,60 @@
             top: 25px;
             background-color: #00f;
         }
+        #inventory {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 100vh;
+            background-color: #fff;
+            border: 1px solid #000;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr); /* 12スロット */
+            grid-template-rows: repeat(3, 1fr);
+            gap: 5px;
+            overflow-y: auto;
+        }
+        .inventory-slot {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #craft-menu {
+            position: fixed;
+            bottom: 0;
+            right: 0;
+            background-color: #fff;
+            border: 1px solid #000;
+            padding: 10px;
+        }
+        #craft-items {
+            margin-bottom: 10px;
+        }
+        .enemy {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #0f0;
+        }
+        #barrier {
+            position: absolute;
+            width: 200px;
+            height: 20px;
+            background-color: #aaa;
+            top: 100px; /* 位置を調整 */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .block {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #ddd;
+        }
     </style>
 </head>
 <body>
@@ -47,15 +91,384 @@
         <div id="player"></div>
         <div id="hp-bar"></div>
         <div id="mana-bar"></div>
+        <div id="barrier"></div> <!-- へだて(モブが越えられない) -->
+        <div id="enemies-container"></div>
+        <!-- ゲーム内ブロック -->
+        <div id="blocks-container"></div>
     </div>
-    <div id="inventory"></div>
+    <div id="inventory">
+        <!-- 12スロットのインベントリ -->
+        <div class="inventory-slot"></div>
+        <!-- (省略: 合計12スロット) -->
+    </div>
     <div id="craft-menu" style="display: none;">
         <div id="craft-items"></div>
         <button id="craft-btn">クラフト</button>
     </div>
-    <button id="give-all-items-btn">アイテム全取得</button>
     <button id="attack-btn">攻撃</button>
     <button id="use-potion-btn">ポーション使用</button>
-    <script src="script.js"></script>
+    <button id="save-btn">セーブ</button>
+    <button id="load-btn">ロード</button>
+    <input type="text" id="search-box" placeholder="アイテム検索">
+    <button id="search-btn">検索</button>
+    <input type="text" id="command-box" placeholder="コマンド入力">
+    <button id="execute-cmd-btn">コマンド実行</button>
+    <button id="weather-btn">天気変更</button>
+    <button id="time-btn">時間変更</button>
+    <script>
+        // アイテム、鉱石、ブロック、敵、ポーション、アクセサリー、効果の定義
+        const items = [
+            { name: "剣", type: "weapon", attackPower: 15, attackSpeed: 1000, element: "⚔️" },
+            { name: "弓", type: "weapon", attackPower: 10, attackSpeed: 1200, element: "🏹" },
+            { name: "回復ポーション", type: "potion", healAmount: 20, element: "🍷" },
+            { name: "月ポーション", type: "potion", healAmount: 100, element: "🍷🌕" },
+            { name: "ツール", type: "tool", effect: "useTool", element: "🔧" },
+            { name: "ハンマー", type: "tool", effect: "build", element: "🔨" },
+            { name: "つるはし", type: "tool", effect: "mine", element: "⛏️" }
+        ];
+
+        const ores = [
+            { name: "鉄鉱石", hardness: 5, element: "⛏️" },
+            { name: "金鉱石", hardness: 7, element: "⛏️" },
+            { name: "ダイヤ鉱石", hardness: 10, element: "⛏️" },
+            { name: "銅鉱石", hardness: 3, element: "⛏️" },
+            { name: "銀鉱石", hardness: 6, element: "⛏️" }
+        ];
+
+        const blocks = [
+            { name: "石", hardness: 2, element: "🧱" },
+            { name: "木材", hardness: 1, element: "🪵" },
+            { name: "土", hardness: 1, element: "🌿" },
+            { name: "砂", hardness: 1, element: "🏖️" },
+            { name: "月石", hardness: 25, element: "🌕" },
+            { name: "コンクリート", hardness: 4, element: "🪨" },
+            { name: "へだてブロック", hardness: 100, element: "🛡️" } // へだてブロック
+        ];
+
+        const enemies = [
+            { name: "ゴブリン", health: 30, damage: 10, speed: 2, element: "👹", poison: false },
+            { name: "ゴースト", health: 25, damage: 8, speed: 1.5, element: "👻", poison: false },
+            { name: "スライム", health: 15, damage: 5, speed: 1, element: "🪲", poison: true },
+            { name: "毒蛇", health: 20, damage: 7, speed: 1.2, element: "🐍", poison: true },
+            { name: "ドラゴン", health: 50, damage: 15, speed: 3, element: "🐉", poison: false }
+        ];
+
+        const potions = [
+            { name: "回復ポーション", healAmount: 20, element: "🍷" },
+            { name: "マナポーション", manaAmount: 10, element: "🍻" },
+            { name: "力のポーション", strengthAmount: 5, element: "💪" },
+            { name: "スピードポーション", speedAmount: 5, element: "🚀" },
+            { name: "毒消し", poisonAmount: -10, element: "💊" }
+        ];
+
+        const accessories = [
+            { name: "リング", effect: "attackBoost", value: 5, element: "💍" },
+            { name: "帽子", effect: "defenseBoost", value: 3, element: "🧢" },
+            { name: "マント", effect: "speedBoost", value: 5, element: "🧥" }
+        ];
+
+        const effects = [
+            { name: "輝き", type: "buff", element: "✨" },
+            { name: "竜巻", type: "debuff", element: "🌪️" },
+            { name: "煙", type: "debuff", element: "🌫️" }
+        ];
+
+        // クラフトレシピ
+        const recipes = {
+            "鉄の剣": ["鉄鉱石", "木材"],
+            "金の弓": ["金鉱石", "木材"],
+            "月石": ["砂", "石"],
+            "リング": ["金鉱石", "ダイヤ鉱石"],
+            "ダイヤのツルハシ": ["ダイヤ鉱石", "木材"]
+        };
+
+        // プレイヤーの状態
+        const player = {
+            x: 100,
+            y: 100,
+            hp: 100,
+            mana: 50,
+            inventory: [],
+            attackPower: 10,
+            lastAttackTime: 0,
+            attackSpeed: 1000 // 武器の攻撃速度 (ミリ秒)
+        };
+
+        let enemiesList = [];
+        let blocksList = [];
+
+        // アイテム検索
+        function acquireSearchedItems(query) {
+            const foundItems = items.filter(item => item.name.includes(query));
+            foundItems.forEach(item => {
+                player.inventory.push(item);
+                console.log(`${item.name} を取得しました`);
+            });
+            updateInventoryDisplay();
+        }
+
+        // ピストンの動作
+        function operatePiston(x, y, direction) {
+            const block = document.querySelector(`.block[data-x='${x}'][data-y='${y}']`);
+            if (block) {
+                if (direction === 'push') {
+                    block.style.transform = `translateY(${50}px)`; // ピストンで押す
+                } else if (direction === 'pull') {
+                    block.style.transform = `translateY(${0}px)`; // ピストンで引く
+                }
+            }
+        }
+
+        // コマンドの実行
+        function executeCommand(command) {
+            switch (command) {
+                case 'give_item':
+                    player.inventory.push({ name: '新アイテム', element: '🔨' });
+                    break;
+                case 'spawn_enemy':
+                    spawnEnemy();
+                    break;
+                case 'spawn_block':
+                    spawnBlock();
+                    break;
+                // その他のコマンドを追加
+            }
+        }
+
+        // コマンドブロックの実装
+        function useCommandBlock(command) {
+            executeCommand(command);
+        }
+
+        // 天気の変更
+        function changeWeather(weather) {
+            document.getElementById('game-container').style.backgroundColor = weather === 'rain' ? '#a8d0e6' : '#f0f0f0';
+            player.weather = weather;
+        }
+
+        // 時間の変更
+        function changeTime(time) {
+            console.log(`時間を${time}に変更しました。`);
+            player.time = time;
+        }
+
+        // アイテムと敵のスポーンを開始
+        function startSpawning() {
+            setInterval(spawnItem, 5000); // 5秒ごとにアイテムをスポーン
+            setInterval(spawnEnemy, 10000); // 10秒ごとに敵をスポーン
+        }
+
+        // アイテムをスポーン
+        function spawnItem() {
+            const item = items[Math.floor(Math.random() * items.length)];
+            console.log(`アイテムをスポーン: ${item.name}`);
+        }
+
+        // 敵をスポーン
+        function spawnEnemy() {
+            const enemy = enemies[Math.floor(Math.random() * enemies.length)];
+            enemiesList.push(enemy);
+            console.log(`敵をスポーン: ${enemy.name}`);
+            renderEnemies();
+        }
+
+        // ブロックをスポーン
+        function spawnBlock() {
+            const block = blocks[Math.floor(Math.random() * blocks.length)];
+            blocksList.push(block);
+            console.log(`ブロックをスポーン: ${block.name}`);
+            renderBlocks();
+        }
+
+        // 敵をレンダリング
+        function renderEnemies() {
+            const enemiesContainer = document.getElementById('enemies-container');
+            enemiesContainer.innerHTML = '';
+            enemiesList.forEach(enemy => {
+                const enemyElement = document.createElement('div');
+                enemyElement.className = 'enemy';
+                enemyElement.innerText = enemy.element;
+                enemyElement.style.left = `${Math.random() * 80}vw`;
+                enemyElement.style.top = `${Math.random() * 80}vh`;
+                enemiesContainer.appendChild(enemyElement);
+            });
+        }
+
+        // ブロックをレンダリング
+        function renderBlocks() {
+            const blocksContainer = document.getElementById('blocks-container');
+            blocksContainer.innerHTML = '';
+            blocksList.forEach(block => {
+                const blockElement = document.createElement('div');
+                blockElement.className = 'block';
+                blockElement.innerText = block.element;
+                blockElement.style.left = `${Math.random() * 80}vw`;
+                blockElement.style.top = `${Math.random() * 80}vh`;
+                blockElement.dataset.x = Math.floor(Math.random() * 100);
+                blockElement.dataset.y = Math.floor(Math.random() * 100);
+                blocksContainer.appendChild(blockElement);
+            });
+        }
+
+        // プレイヤーと敵の攻撃判定
+        function attack() {
+            const now = Date.now();
+            if (now - player.lastAttackTime >= player.attackSpeed) {
+                player.lastAttackTime = now;
+                // 武器の攻撃処理
+                enemiesList.forEach(enemy => {
+                    if (isInRange(player, enemy)) {
+                        enemy.health -= player.attackPower;
+                        if (enemy.health <= 0) {
+                            console.log(`${enemy.name} を倒しました！`);
+                            enemiesList = enemiesList.filter(e => e !== enemy);
+                        }
+                    }
+                });
+            }
+        }
+
+        // プレイヤーと敵の距離を計算
+        function isInRange(player, enemy) {
+            const playerRect = document.getElementById('player').getBoundingClientRect();
+            const enemyRect = document.querySelector('.enemy').getBoundingClientRect();
+            return !(playerRect.right < enemyRect.left || 
+                     playerRect.left > enemyRect.right || 
+                     playerRect.bottom < enemyRect.top || 
+                     playerRect.top > enemyRect.bottom);
+        }
+
+        // プレイヤーの死亡処理
+        function playerDeath() {
+            alert('ゲームオーバー');
+            // リセットやメニューへの遷移などを追加
+        }
+
+        // へだての追加
+        function createBarrier() {
+            const barrier = document.getElementById('barrier');
+            barrier.style.display = 'block';
+        }
+
+        // ブロックの破壊
+        function destroyBlock(x, y) {
+            const block = document.querySelector(`.block[data-x='${x}'][data-y='${y}']`);
+            if (block) {
+                block.remove();
+                blocksList = blocksList.filter(b => b !== block);
+                console.log('ブロックが破壊されました');
+            }
+        }
+
+        // ブロックの設置
+        function placeBlock(x, y, block) {
+            const blockElement = document.createElement('div');
+            blockElement.className = 'block';
+            blockElement.innerText = block.element;
+            blockElement.style.left = `${x}px`;
+            blockElement.style.top = `${y}px`;
+            blockElement.dataset.x = x;
+            blockElement.dataset.y = y;
+            document.getElementById('blocks-container').appendChild(blockElement);
+            blocksList.push(block);
+            console.log('ブロックが設置されました');
+        }
+
+        // ゲーム開始
+        function init() {
+            loadGameState();
+            updatePlayerPosition();
+            updateInventoryDisplay();
+            updatePlayerStatus();
+            startSpawning(); // アイテムと敵のスポーンを開始
+            createBarrier(); // へだてを作成
+            renderEnemies();
+            renderBlocks();
+        }
+
+        // ゲーム状態の保存
+        function saveGameState() {
+            localStorage.setItem('player', JSON.stringify(player));
+            localStorage.setItem('enemies', JSON.stringify(enemiesList));
+            localStorage.setItem('blocks', JSON.stringify(blocksList));
+            console.log('ゲームの状態が保存されました。');
+        }
+
+        // ゲーム状態のロード
+        function loadGameState() {
+            const savedPlayer = localStorage.getItem('player');
+            const savedEnemies = localStorage.getItem('enemies');
+            const savedBlocks = localStorage.getItem('blocks');
+            if (savedPlayer) {
+                Object.assign(player, JSON.parse(savedPlayer));
+                console.log('ゲームの状態がロードされました。');
+            }
+            if (savedEnemies) {
+                enemiesList = JSON.parse(savedEnemies);
+                renderEnemies();
+            }
+            if (savedBlocks) {
+                blocksList = JSON.parse(savedBlocks);
+                renderBlocks();
+            }
+        }
+
+        // インベントリの表示を更新
+        function updateInventoryDisplay() {
+            const inventory = document.getElementById('inventory');
+            inventory.innerHTML = '';
+            player.inventory.forEach(item => {
+                const slot = document.createElement('div');
+                slot.className = 'inventory-slot';
+                slot.innerText = item.element;
+                inventory.appendChild(slot);
+            });
+        }
+
+        // プレイヤーの状態を更新
+        function updatePlayerStatus() {
+            document.getElementById('hp-bar').style.width = `${player.hp}%`;
+            // その他のステータス表示を追加
+        }
+
+        // プレイヤーの位置を更新
+        function updatePlayerPosition() {
+            const playerElement = document.getElementById('player');
+            playerElement.style.left = `${player.x}px`;
+            playerElement.style.top = `${player.y}px`;
+        }
+
+        // イベントリスナーの追加
+        document.getElementById('search-btn').addEventListener('click', () => {
+            const query = document.getElementById('search-box').value;
+            acquireSearchedItems(query);
+        });
+
+        document.getElementById('execute-cmd-btn').addEventListener('click', () => {
+            const command = document.getElementById('command-box').value;
+            executeCommand(command);
+        });
+
+        document.getElementById('weather-btn').addEventListener('click', () => {
+            changeWeather('rain'); // サンプル: 雨に変更
+        });
+
+        document.getElementById('time-btn').addEventListener('click', () => {
+            changeTime('day'); // サンプル: 昼に変更
+        });
+
+        document.getElementById('save-btn').addEventListener('click', saveGameState);
+        document.getElementById('load-btn').addEventListener('click', loadGameState);
+        document.getElementById('attack-btn').addEventListener('click', attack);
+        document.getElementById('use-potion-btn').addEventListener('click', () => {
+            const potion = player.inventory.find(item => item.type === 'potion');
+            if (potion) {
+                player.hp = Math.min(100, player.hp + potion.healAmount);
+                console.log(`${potion.name} を使用しました`);
+            }
+        });
+
+        init();
+    </script>
 </body>
 </html>
