@@ -3,140 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terikk</title>
+    <title>ゲーム</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
+        /* スタイルの追加 */
         #game-container {
             position: relative;
             width: 100vw;
             height: 100vh;
-            background: #87CEEB; /* 空の色 */
-        }
-        .item, .enemy {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            background-color: transparent;
-            text-align: center;
-            line-height: 30px;
-            border-radius: 50%;
-            font-size: 14px;
-        }
-        .item {
-            color: green;
-        }
-        .enemy {
-            color: red;
+            background-color: #f0f0f0;
         }
         #player {
             position: absolute;
-            width: 30px;
-            height: 30px;
-            background-color: blue;
-            color: white;
-            text-align: center;
-            line-height: 30px;
-            border-radius: 50%;
-            font-size: 14px;
-        }
-        #hp-bar {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            width: 200px;
-            height: 20px;
-            background: #333;
-            border: 2px solid #000;
-        }
-        #hp-bar > div {
-            height: 100%;
-            background: red;
-            width: 100%;
-        }
-        #joystick {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            width: 100px;
-            height: 100px;
-            background: rgba(0, 0, 0, 0.5);
-            border-radius: 50%;
-        }
-        #joystick-handle {
-            position: absolute;
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.8);
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background-color: #f00;
         }
         #inventory {
             position: fixed;
-            bottom: 120px;
-            left: 10px;
-            background: #fff;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 100vh;
+            background-color: #fff;
             border: 1px solid #000;
-            padding: 10px;
+            overflow-y: auto;
         }
-        #spawn-item-btn, #spawn-enemy-btn, #give-all-items-btn, #attack-btn, #craft-btn {
+        #hp-bar, #mana-bar {
             position: fixed;
-            bottom: 10px;
-            margin: 5px;
-            padding: 10px;
-            background: #f0f0f0;
-            border: 1px solid #000;
-            cursor: pointer;
+            top: 0;
+            left: 0;
+            height: 20px;
+            background-color: #f00;
+            width: 100px;
         }
-        #spawn-item-btn {
-            left: 120px;
-        }
-        #spawn-enemy-btn {
-            left: 240px;
-        }
-        #give-all-items-btn {
-            left: 360px;
-        }
-        #attack-btn {
-            left: 480px;
-        }
-        #craft-btn {
-            left: 600px;
-        }
-        #craft-menu {
-            position: fixed;
-            bottom: 50px;
-            left: 10px;
-            background: #fff;
-            border: 1px solid #000;
-            padding: 10px;
-            display: none;
+        #mana-bar {
+            top: 25px;
+            background-color: #00f;
         }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <div id="player">P</div>
-        <div id="hp-bar"><div></div></div>
-        <div id="joystick">
-            <div id="joystick-handle"></div>
-        </div>
-        <div id="inventory"></div>
-        <button id="spawn-item-btn">アイテムをスポーン</button>
-        <button id="spawn-enemy-btn">敵をスポーン</button>
-        <button id="give-all-items-btn">全アイテムを手に入れる</button>
-        <button id="attack-btn">攻撃</button>
-        <button id="craft-btn">クラフト</button>
-        <div id="craft-menu">
-            <h3>クラフトメニュー</h3>
-            <div id="craft-items"></div>
-        </div>
+        <div id="player"></div>
+        <div id="hp-bar"></div>
+        <div id="mana-bar"></div>
     </div>
+    <div id="inventory"></div>
+    <div id="craft-menu" style="display: none;">
+        <div id="craft-items"></div>
+        <button id="craft-btn">クラフト</button>
+    </div>
+    <button id="give-all-items-btn">アイテム全取得</button>
+    <button id="attack-btn">攻撃</button>
+    <button id="use-potion-btn">ポーション使用</button>
     <script src="script.js"></script>
 </body>
 </html>
