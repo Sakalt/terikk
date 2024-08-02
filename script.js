@@ -75,7 +75,8 @@ let player = {
     inventory: [],
     invincibleTimer: null,
     attackSpeed: 1000, // 攻撃速度（ミリ秒）
-    lastAttackTime: 0
+    lastAttackTime: 0,
+    mana: 100 // 追加: マナ
 };
 
 // ランダムな位置にアイテムや敵をスポーン
@@ -87,6 +88,26 @@ function spawnRandomElement(elements, className) {
     newElement.style.left = `${Math.random() * window.innerWidth}px`;
     newElement.style.top = `${Math.random() * window.innerHeight}px`;
     document.getElementById('game-container').appendChild(newElement);
+
+    // アイテムを自動的に拾得するロジック
+    newElement.addEventListener('click', () => {
+        if (className === 'item') {
+            player.inventory.push(randomElement);
+            updateInventoryDisplay();
+            newElement.remove();
+        }
+    });
+
+    // 敵に攻撃を当てるロジック
+    if (className === 'enemy') {
+        newElement.addEventListener('click', () => {
+            if (!player.invincible) {
+                player.hp -= 10; // ダメージ
+                updatePlayerStatus();
+                newElement.remove();
+            }
+        });
+    }
 }
 
 function spawnItem() {
@@ -97,17 +118,17 @@ function spawnEnemy() {
     spawnRandomElement(enemies, 'enemy');
 }
 
-// アイテムをなんでも手に入れるボタン
-document.getElementById('give-all-items-btn').addEventListener('click', () => {
-    player.inventory = [...items];
-    updateInventoryDisplay();
-});
-
 // プレイヤーの移動
 function updatePlayerPosition() {
     const playerElement = document.getElementById('player');
     playerElement.style.left = `${player.x}px`;
     playerElement.style.top = `${player.y}px`;
+}
+
+// プレイヤーの状態を表示
+function updatePlayerStatus() {
+    document.getElementById('hp-bar').style.width = `${player.hp}%`;
+    document.getElementById('mana-bar').style.width = `${player.mana}%`;
 }
 
 // インベントリの表示を更新する関数
@@ -133,6 +154,7 @@ function loadGameState() {
         Object.assign(player, JSON.parse(savedState));
         updatePlayerPosition();
         updateInventoryDisplay();
+        updatePlayerStatus();
     }
 }
 
@@ -145,7 +167,10 @@ joystick.addEventListener('mousemove', (e) => {
     const x = e.clientX - rect.left - joystick.offsetWidth / 2;
     const y = e.clientY - rect.top - joystick.offsetHeight / 2;
     joystickHandle.style.transform = `translate(${x}px, ${y}px)`;
-    // プレイヤーの移動ロジックを追加
+    // プレイヤーの移動ロジック
+    player.x += x / 10;
+    player.y += y / 10;
+    updatePlayerPosition();
 });
 
 // 攻撃機能
@@ -199,11 +224,26 @@ document.getElementById('craft-btn').addEventListener('click', showCraftMenu);
 // 攻撃ボタンのイベントリスナー
 document.getElementById('attack-btn').addEventListener('click', attack);
 
+// ポーションの使用機能
+document.getElementById('use-potion-btn').addEventListener('click', () => {
+    const potion = player.inventory.find(item => item.type === 'potion');
+    if (potion) {
+        player.hp += potion.healAmount || 0;
+        player.mana += potion.manaAmount || 0;
+        updatePlayerStatus();
+        player.inventory = player.inventory.filter(item => item !== potion);
+        updateInventoryDisplay();
+    } else {
+        alert('ポーションがありません。');
+    }
+});
+
 // 初期化
 function init() {
     loadGameState();
     updatePlayerPosition();
     updateInventoryDisplay();
+    updatePlayerStatus();
     startSpawning(); // アイテムと敵のスポーンを開始
 }
 
